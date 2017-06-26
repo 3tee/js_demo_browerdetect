@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="renderer" content="webkit" />
+		<script type="text/javascript" src="js/cn.tee3.avd-2.5.0.0.min.js?20170621141422"></script>
+		<title>浏览器检测Demo</title>
+	</head>
+
+	<body>
+		<div style="text-align: center;" id="detectDiv">
+			浏览器检测
+			<br>
+			<br>
+			<table id="browserDetectTable" align="center" style="border: 1px solid black;">
+			</table>
+		</div>
+		<script type="text/javascript">			
+			//在此之前，需引用3tee的js sdk包，然后在此处进行变量调用
+			var AVDEngine = ModuleBase.use(ModulesEnum.avdEngine);
+			var avdEngine = new AVDEngine();
+
+			var titleModel = [{
+					name: "浏览器信息",
+					num: "3",
+					index: "0"
+				},
+				{
+					name: "webrtc支持能力",
+					num: "5",
+					index: "3"
+				},
+				{
+					name: "其他",
+					num: "2",
+					index: "8"
+				},
+				{
+					name: "最终结论",
+					num: "1",
+					index: "10"
+				}
+			]; //定义大标题模块，包括名称和子模块数目
+			var index = 0; //index计数用来判断是否是每个子项目的第一个，如果是，需要加入标题信息
+
+			console.log(navigator.userAgent);
+			browserDetect();
+
+			//调用avdEngine的方法获取结果
+			//getBrowserDetect获取的浏览器详细信息
+			//checkBrowserSupport获取的是否支持3tee avd
+			function browserDetect() {
+				$("#browserDetectTable").empty(); //清空表格
+				var thead = '<thead><td style="width: 200px;border-right: 1px solid black;">标题</td><td style="width: 200px;border-right: 1px solid black;">检测项目</td><td style="width: 100px;">检测结果</td></thead>';
+				$("#browserDetectTable").append(thead); //添加标题
+
+				var detect = avdEngine.getBrowserDetect(); //获取sdk提供的详细浏览器分析信息    
+
+				addNewTr('内核名称', detect.browser.name); //浏览器信息  
+
+				addNewTr('内核版本', detect.browser.fullVersion); //内核版本  
+
+				addNewTr('操作系统名称', detect.osName); //操作系统名称  
+
+				addNewTr('GetUserMedia', detect.getUserMediaSupport); //是否支持GetUserMedia  
+
+				addNewTr('RTCPeerConnection', detect.RTCPeerConnectionSupport); //是否支持RTCPeerConnection  
+
+				addNewTr('DataChannel', detect.dataChannelSupport); //是否支持DataChannel
+
+				addNewTr('屏幕共享', detect.screenSharingSupport); //chrome42以上及https访问 ，支持屏幕共享
+
+				addNewTr('H264', detect.h264Support); //chrome52及以上或firefox52及以上 ，支持H264
+
+				addNewTr('WebSocket', detect.WebSocketSupport); //是否支持WebSocket
+
+				var pro = document.location.protocol;
+				var getPro = pro.split(":"); //去掉协议中的:
+				addNewTr('当前协议', getPro[0]); //当前协议 
+
+				//以上是浏览器的详细分析信息，根据getBrowserDetect()函数得到，以下是是否使用sdk结果，调用checkBrowserSupport()得到
+				var browserSupport = avdEngine.checkBrowserSupport(); //获取是否使用3tee sdk结果
+
+				addNewTr('本浏览器适用3tee sdk', browserSupport); //是否使用3tee sdk
+				
+				changePageForMobile(detect.osName);//为手机端适配页面
+			}
+
+			//在表格中新增一行，分别显示检测名称和检测结果
+			function addNewTr(name, result) {
+				var color = 'black';
+				if(result === true) {
+					color = 'blue'; //true用蓝色显示
+				} else if(result === false) {
+					color = 'red'; //false用红色显示
+				}
+				var newTr = "<tr><td style='border-right: 1px solid black;border-top: 1px solid black;'>" + name + "</td><td style='border-top: 1px solid black;color:" + color + "'>" + result + "</td></tr>";
+				//判断是否是第一项，如果是，加入合并的标题信息
+				for(var i = 0; i < titleModel.length; i++) {
+					if(index == titleModel[i].index) {
+						newTr = "<tr><td rowspan='" + titleModel[i].num + "' style='border-right: 1px solid black;border-top: 1px solid black;'>" + titleModel[i].name + "</td><td style='border-right: 1px solid black;border-top: 1px solid black;'>" + name + "</td><td style='border-top: 1px solid black;color:" + color + "'>" + result + "</td></tr>";
+					}
+				}
+				$("#browserDetectTable").append(newTr);
+				index++;
+			}
+			
+			//手机端页面适配
+			function changePageForMobile(osName){
+				if(osName == 'Android' || osName == 'iOS'){
+					document.getElementById('detectDiv').style.fontSize = "35px";//如果是手机端，增大字体，方便手机端查看
+				}
+			}
+		</script>
+	</body>
+
+</html>
